@@ -1,0 +1,34 @@
+name: Daily Data Analysis
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Her gün sabah 9'da (UTC)
+  workflow_dispatch:       # Manuel tetikleme
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas numpy matplotlib seaborn scikit-learn requests nbformat
+
+      - name: Generate daily analysis
+        run: python scripts/generate_daily.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "aliemreulus"
+          git config user.email "aliemreulus@gmail.com"
+          git add .
+          git diff --cached --quiet || git commit -m "$(date +'%Y-%m-%d') daily analysis update"
+          git push
